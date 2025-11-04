@@ -8,7 +8,7 @@ library(dplyr)
 library(tictoc)
 library(tidyr)
 
-dati = read.csv('C:/Users/Michela/Documents/University/MAGISTRALE/Bressanone/3_energia/energia.csv', header = TRUE, stringsAsFactors = TRUE)
+dati = read.csv('C:/.../energia.csv', header = TRUE, stringsAsFactors = TRUE)
 dim(dati)
 names(dati)
 
@@ -442,3 +442,4 @@ t(err)
 
 # Tabella con modelli in ordine crescente di MSE:
 (tabella = arrange(as.data.frame(t(err)), mse))
+

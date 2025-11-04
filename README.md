@@ -21,6 +21,7 @@ Gli script e le relazioni inclusi mostrano l’applicazione di:
 * **Selezione delle variabili:** tecniche per scegliere automaticamente le variabili più utili al modello, ad esempio tramite selezione o valutazione dell’importanza dei singoli predittori.
 * **Previsione e interpretazione:** analisi delle variabili più influenti e valutazione della capacità predittiva dei modelli.
 * **Gestione della variabilità spaziale e temporale**.
+* **Bilanciamento delle classi:** trattazione di dataset con categorie sbilanciate.
 
 ## Obiettivo
 

@@ -7,7 +7,7 @@ library(dplyr)
 library(tictoc)
 library(tidyr)
 
-setwd("~/University/MAGISTRALE/Bressanone/4_warlog_rivedere")
+setwd("~/.../dir")
 dati <- read.csv("warlogs.csv")
 
 #View(dati)
@@ -722,3 +722,4 @@ err_sorted <- err[order(unlist(err), decreasing = FALSE)]
 varImpPlot(rf, main = 'Foresta Casuale', type = 1)
 table(dati$category)
 table(dati$attack_on)
+

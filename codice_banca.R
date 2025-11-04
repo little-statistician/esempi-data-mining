@@ -1,7 +1,6 @@
 # Caricamento dati --------------------------------------------------------
 rm(list = ls())
 gc()
-
 library(tidyverse)
 library(dplyr)
 library(tidyr)
@@ -63,7 +62,6 @@ sum(res$na_colonna$freq)
 table(dati$FIND_PPQ18SS_MONTH_DAT_MAX_FIN, useNA = 'always')
 dati$FIND_PPQ18SS_MONTH_DAT_MAX_FIN <- ifelse(is.na(dati$FIND_PPQ18SS_MONTH_DAT_MAX_FIN), 0, 1)
 
-
 #variabii relative all'anzanità
 table(dati$ANZ_PROF, useNA = 'always')
 dati$ANZ_PROF[dati$ANZ_PROF == '98'] <- NA
@@ -99,12 +97,10 @@ table(dati$FIND_PPQ18_IMP_FIN, useNA = 'always')
 dati$FIND_PPQ18_IMP_FIN <- ifelse(dati$FIND_PPQ18_IMP_FIN > 1, 1, dati$FIND_PPQ18_IMP_FIN)
 dati$FIND_PPQ18_IMP_FIN[is.na(dati$FIND_PPQ18_IMP_FIN)] <- 'Mancante'
 
-
 #table(cut(dati$PPQ_18_IMP_FIN, breaks = c(-1, 999, 1000, 15000, 25000, 35000, 45000, 70000)), useNA = 'always')
 table(dati$PPQ_18_IMP_FIN)
 dati$PPQ_18_IMP_FIN <- ifelse(dati$PPQ_18_IMP_FIN > 1, 1, dati$PPQ_18_IMP_FIN)
 dati$PPQ_18_IMP_FIN[is.na(dati$PPQ_18_IMP_FIN)] <- 'Mancante'
-
 
 dati$PROF[dati$PROF == 'Societa/Associazioni'] <- 'Sconosciuto'
 
@@ -117,10 +113,8 @@ table(tipo_variabile)
 
 # rendo fattore un character
 dati <- dati %>% mutate(across(where(is.character), as.factor))
-
 (var_qualitative <- names(dati %>% select(-y))[tipo_variabile == "factor" | tipo_variabile == "character"])
 (var_quantitative <- setdiff(names(dati %>% select(-y)), var_qualitative))
-
 
 table(dati$CRT_TODU_REV, useNA = 'always')
 
@@ -140,7 +134,6 @@ table(tipo_variabile)
 (n_unici <- apply(dati[,var_quantitative], 2, function(x) length(unique(x))))
 
 save(dati, file = 'backup_banca.Rdata') #salvo dati puliti
-
 
 # Stima-verifica ----------------------------------------------------------
 
@@ -175,7 +168,6 @@ var_quantitative = setdiff(names(dati %>% select(-c(y,dataset))), var_qualitativ
 var_qualitative
 var_quantitative
 
-
 # Controllo che in verifica non ci siano modalità non presenti in stima:
 for(col in var_qualitative){
   if(!(all(unique(dati[dati$dataset == "verifica", col]) %in%
@@ -183,7 +175,6 @@ for(col in var_qualitative){
     cat(col,"-> in verifica sono presenti modalità non presenti in stima\n")
   }
 }
-
 
 #correlazioni
 matrice_correlazione <- dati %>%
@@ -204,7 +195,6 @@ correlazioni %>% filter(cor < -0.70 | cor > 0.70)
 dati[dati$dataset == "stima",var_quantitative] <- dati[dati$dataset == "stima",] %>% select(var_quantitative) %>% scale 
 dati[dati$dataset == "verifica",var_quantitative] <- dati[dati$dataset == "verifica",] %>% select(var_quantitative) %>% scale
 
-
 # Creo matrice del modello con tutto il dataset
 # (poi mi prendero' stima o verifica, tanto e' uguale a farlo separato o unito)
 xmat.model <- model.matrix(~.-1, data = dati %>% select(-c(y, dataset)))
@@ -219,7 +209,6 @@ varnames2 <- colnames(xmat.model)
 
 # Vettore che mi servira' in seguito:
 yy <- ifelse(dati$y == "1", 1, 0)
-
 
 # Modellazione ------------------------------------------------------------
 
@@ -354,7 +343,6 @@ m.lasso <- cv.glmnet(xmat.model[dati$dataset == "stima",],
                      yy[dati$dataset == "stima"], lambda = lambda.grid,
                      alpha = 1, standardize = F, foldid = myfolds, trace.it = 1)
 
-
 plot(m.lasso)
 m.lasso$lambda.min
 length(coef(m.lasso))
@@ -365,8 +353,6 @@ title("Lasso", line = 2.5)
 abline(v = log(m.lasso$lambda.min), lty = 2)
 abline(v = log(m.lasso$lambda.1se), lty = 3)
 legend('topright', c('log(lambda.min)', 'log(lambda.1se)'), col = c(1,1), lty = c(2,3))
-
-
 
 # Coefficienti relativi al valore di lambda con errore minore:
 coef(m.lasso, s = "lambda.min")
@@ -379,10 +365,8 @@ setdiff(varnames2, varlasso) # variabili non selezionate dal lasso
 # Previsioni sull'insieme di verifica:
 p.lasso = predict(m.lasso, newx = xmat.model[dati$dataset == "verifica",], s = "lambda.min")
 
-
 valore_lift$Lineare_Lasso = lift_00625(p.lasso, dati$y[dati$dataset=='verifica'])
 valore_lift
-
 
 # Modello Additivo con var selezionate lasso ------------------------------
 
@@ -413,13 +397,10 @@ p.gam.sel = predict(m.gam.sel, newdata = dati %>% filter(dataset == "verifica"),
 
 valore_lift$GAM.sel = lift_00625(p.gam.sel, dati$y[dati$dataset=='verifica'])
 valore_lift
-
-
+                  
 # MARS --------------------------------------------------------------------
 
 library(polspline)
-
-
 # Divisione in stima-convalida 
 set.seed(25)
 cb1 <- sample(1:NROW(dati[dati$dataset == "stima",]), (2/3)*NROW(dati[dati$dataset == "stima",]))
@@ -427,7 +408,6 @@ cb2 <- setdiff(1:NROW(dati[dati$dataset == "stima",]), cb1)
 
 min(6*(nrow(dati)^(1/3)),nrow(dati)/4,100) #maxsize di default:
 min(20, round(nrow(dati)/4)) #knot di default
-
 
 # Stima sull'insieme di stima:
 set.seed(25)
@@ -437,13 +417,11 @@ m.mars <- polymars(dati$y[dati$dataset == "stima"][cb1],
                    ts.pred = xmat.model[dati$dataset == "stima",][-cb1,],
                    classify = T)
 
-
 str(m.mars)
 # m.mars
 
 # Modello finale:
 m.mars$model
-
 (J3 <- m.mars$fitting$size[which.min(m.mars$fitting$`RSS 2`)])
 
 # Grafico dell'andamento della RSS al variare di size, in fase di crescita e di potatura:
@@ -453,7 +431,6 @@ plot(m.mars$fitting$size, m.mars$fitting$RSS,
 legend( "topright", c("In avanti", "All'indietro"), pch = 16,
         col = unique(m.mars$fitting$"0/1")+2)
 title('MARS: Andamento RSS al variare della taglia size')
-
 
 # Grafico dell'andamento della RSS al variare di GCV, in fase di crescita e di potatura:
 plot(m.mars$fitting$size, m.mars$fitting$GCV, 
@@ -465,8 +442,6 @@ legend( "topright", c("In avanti", "All'indietro"), pch = 16,
 title('MARS: Andamento GCV al variare della taglia size')
 ######### Grafico da includere nel report.
 
-
-
 # Variabili che interagiscono:
 int <- which(m.mars$model[,3] != 0)
 m.mars$model[int, c(1,3)]
@@ -475,10 +450,8 @@ cbind(colnames(xmat.model)[m.mars$model[int,1]], colnames(xmat.model)[m.mars$mod
 # Previsioni sull'insieme di verifica:
 p.mars <- predict(m.mars, x = xmat.model[dati$dataset == "verifica",])[,1]
 
-
 valore_lift$mars = lift_00625(p.mars, dati$y[dati$dataset=='verifica'])
 valore_lift
-
 #r.mars = lift_roc(p.mars, yy[dati$dataset=="verifica"],type="bin")
 
 # Boosting ----------------------------------------------------------------
@@ -506,7 +479,6 @@ plot(m.boost, test = T)
 # Importanza delle variabili:
 varplot(m.boost)
 
-
 #m.boost <- readRDS('boost.rds')
 # Previsioni sull'insieme di verifica:
 p.boost = predict(m.boost, newdata = dati %>% filter(dataset == "verifica") %>% select(-dataset),
@@ -514,7 +486,6 @@ p.boost = predict(m.boost, newdata = dati %>% filter(dataset == "verifica") %>% 
 
 valore_lift$boost = lift_00625(p.boost, dati$y[dati$dataset=='verifica'])
 valore_lift
-
 
 # Boosting con Stumps -----------------------------------------------------
 
@@ -536,13 +507,11 @@ p.boost.stump = predict(m.boost.stump, newdata = dati %>% filter(dataset == "ver
 valore_lift$boost_stump = lift_00625(p.boost.stump, dati$y[dati$dataset=='verifica'])
 valore_lift
 
-
 # Support Vector Machines -------------------------------------------------
 
 library(e1071)
 
 # SVM con nucleo radiale (default)
-
 # Scelgo il parametro di regolazione migliore in base al lift:
 ranges = 2:13
 
@@ -600,13 +569,11 @@ set.seed(42)
 K <- 5
 myfolds <- sample(1:K, NROW(dati[dati$dataset == "stima",]), replace = T)
 
-
 # Crescita e potatura mediante convalida incrociata:
 set.seed(25)
 complexity = 2:100 #40 numero max di foglie che voglio, valutare dopo dal plot di complexity
 lift.tree = matrix(NA, nrow = length(complexity), ncol = K)
 sss <- dati %>% filter(dataset=="stima") %>% select(-dataset)
-
 
 tic('Albero')
 for (i in 1:K) {
@@ -623,7 +590,6 @@ for (i in 1:K) {
   }
 }
 toc()
-
 
 # Andamento della devianza media in funzione di size:
 plot(x = complexity, y = apply(lift.tree, 1, mean), type = "b",
@@ -651,33 +617,27 @@ p.tree.cv = predict(m.tree.best, newdata = dati %>% filter(dataset=="verifica"),
 valore_lift$albero = lift_00625(p.tree.cv, dati$y[dati$dataset=='verifica'])
 valore_lift
 
-
 # Analisi Discriminante Lineare -------------------------------------------
 
 library(MASS)
 
 var_qualitative
 var_quantitative
-
 #formula con sono quantitative
 form.quant <- paste("y ~", paste(var_quantitative, collapse = " + "), collapse = NULL)
 
 # Stima sull'insieme di stima:
 m.lda = lda(formula(form.quant), data = dati %>% filter(dataset == "stima"))
-
 m.lda
 
 # Previsioni sull'insieme di verifica:
 p.lda = predict(m.lda, newdata = dati %>% filter(dataset == "verifica"))$posterior[,2]
 
-
 valore_lift$LDA = lift_00625(p.lda, dati$y[dati$dataset=='verifica'])
 valore_lift
 
-
 var_quantitative
 varlasso
-
 vars <- intersect(var_quantitative, varlasso)
 
 #formula quantitative + sel lasso
@@ -689,7 +649,6 @@ m.lda.ridotto = lda(formula(form.2), data = dati %>% filter(dataset == "stima"))
 # Previsioni sull'insieme di verifica:
 p.lda.ridotto = predict(m.lda.ridotto, newdata = dati %>% filter(dataset == "verifica"))$posterior[,2]
 
-
 valore_lift$LDA.ridotto = lift_00625(p.lda.ridotto, dati$y[dati$dataset=='verifica'])
 valore_lift
 
@@ -697,21 +656,17 @@ valore_lift
 
 library(MASS)
 
-# Stima sull'insieme di stima:
 m.qda = qda(formula(form.2), data = dati %>% filter(dataset == "stima"))
 # Mentre la LDA dava solo un warning, qui da' proprio errore.
 # In tal caso occorre per forza usare le variabili selezionate.
 
 m.qda
-
 # Previsioni sull'insieme di verifica:
 p.qda = predict(m.qda, newdata = dati %>% filter(dataset == "verifica"))$posterior[,2]
 
 valore_lift$QDA.ridotto = lift_00625(p.qda, dati$y[dati$dataset=='verifica'])
 valore_lift
 
-
 # Risultati ---------------------------------------------------------------
-
 valore_lift
 

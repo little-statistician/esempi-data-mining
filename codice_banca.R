@@ -1,5 +1,4 @@
-###############  CLASSIFICAZIONE  ###############
-
+# Caricamento dati --------------------------------------------------------
 rm(list = ls())
 gc()
 
@@ -8,16 +7,13 @@ library(dplyr)
 library(tidyr)
 library(tictoc)
 
-setwd("~/University/MAGISTRALE/_/DATA MINING/Bressanone/5_banca famiglieOK")
-dati <- read.csv("bancafamiglie.csv", header=T, stringsAsFactors = TRUE, sep=",")
-
-#saveRDS(modello, file = "modello/risultato.rds") # per salvare
-
-# Caricamento dati --------------------------------------------------------
+dati <- read.csv("~/.../bancafamiglie.csv", header=T, stringsAsFactors = TRUE, sep=",")
 
 #View(dati)
 dim(dati)
 colnames(dati)
+
+# ESPLORATIVE ---------------------------------------------------------------
 
 # Controllo che ci sia solo un'osservazione per ogni id:
 length(unique(dati$Codice_Cliente)) == nrow(dati)
@@ -718,3 +714,4 @@ valore_lift
 # Risultati ---------------------------------------------------------------
 
 valore_lift
+
